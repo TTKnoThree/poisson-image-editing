@@ -65,7 +65,7 @@ class MaskPainter():
  
         # close all open windows
         cv2.destroyAllWindows()
-        return maskPath
+        return self.mask
 
 
 if __name__ == '__main__':

@@ -5,13 +5,20 @@ from os import path
  
 
 class MaskMover():
-    def __init__(self, image_path, mask_path):
-        self.image_path, self.mask_path = image_path, mask_path
-        self.image = cv2.imread(image_path)
+    def __init__(self, image, mask):
+        # initialize mask size
+        if image.shape[0] != mask.shape[0]:
+            block = np.zeros((image.shape[0]-mask.shape[0], mask.shape[1], 3))
+            mask = np.concatenate((mask, block), axis=0)
+        elif image.shape[1] != mask.shape[1]:
+            block = np.zeros((mask.shape[0], image.shape[1]-mask.shape[1], 3))
+            mask = np.concatenate((mask, block), axis=1)
+        
+        self.image = image
+        self.original_mask = mask
         self.image_copy = self.image.copy()
 
-        self.original_mask = cv2.imread(mask_path)
-        self.original_mask_copy = np.zeros(self.image.shape)
+        self.original_mask_copy = np.zeros(self.original_mask.shape)
         self.original_mask_copy[np.where(self.original_mask!=0)] = 255
 
         self.mask = self.original_mask_copy.copy()
@@ -81,13 +88,13 @@ class MaskMover():
         roi = self.mask
         cv2.imshow("Press any key to save the mask", roi)
         cv2.waitKey(0)
-        new_mask_path = path.join(path.dirname(self.image_path), 
-                                'target_mask.png')
-        cv2.imwrite(new_mask_path, self.mask)
+        # new_mask_path = path.join(path.dirname(self.image_path), 
+        #                         'target_mask.png')
+        # cv2.imwrite(new_mask_path, self.mask)
  
         # close all open windows
         cv2.destroyAllWindows()
-        return self.xi-self.x0, self.yi-self.y0, new_mask_path
+        return self.xi-self.x0, self.yi-self.y0, self.mask
 
 
 if __name__ == '__main__':
