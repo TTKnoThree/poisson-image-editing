@@ -5,9 +5,9 @@ from os import path
  
 
 class MaskPainter():
-    def __init__(self, image_path):
-        self.image_path = image_path
-        self.image = cv2.imread(image_path)
+    def __init__(self, mask_dir, image):
+        self.mask_dir = mask_dir
+        self.image = image.copy()
         self.image_copy = self.image.copy()
 
         self.mask = np.zeros(self.image.shape)
@@ -59,7 +59,7 @@ class MaskPainter():
         roi = self.mask
         cv2.imshow("Press any key to save the mask", roi)
         cv2.waitKey(0)
-        maskPath = path.join(path.dirname(self.image_path), 
+        maskPath = path.join(self.mask_dir, 
                               'mask.png')
         cv2.imwrite(maskPath, self.mask)
  

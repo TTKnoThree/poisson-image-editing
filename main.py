@@ -6,56 +6,20 @@ from move_mask import MaskMover
 from poisson_image_editing import poisson_edit
 import MODNet.inference as modnet
 
-#import argparse
-import getopt
-import sys
+import argparse
 from os import path
 
+parser = argparse.ArgumentParser(description='Add arguments for main.py')
+parser.add_argument('-a', '--automatic', action='store_true', help='Use MODnet for automatic matting.')
+parser.add_argument('-s', '--source', type=str, required=True, help='The path of source image.')
+parser.add_argument('-t', '--target', type=str, required=True, help='The path of target image.')
+parser.add_argument('-m', '--mask', type=str, default=None, help='The path of existed mask image.')
 
-def usage():
-    print("Usage: python main.py [options] \n\n\
-    Options: \n\
-    \t-h\tPrint a brief help message and exits..\n\
-    \t-a\t(Optional) Use MODnet for automatic matting.\n\
-    \t-s\t(Required) Specify a source image.\n\
-    \t-t\t(Required) Specify a target image.\n\
-    \t-m\t(Optional) Specify a mask image with the object in white and other part in black, ignore this option if you plan to draw it later.")
-
+args = parser.parse_args()
 
 if __name__ == '__main__':
-    # parse command line arguments
-    args = {}
-    
-    try:
-        opts, _ = getopt.getopt(sys.argv[1:], "h:a:s:t:m:p:")
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        print(err)  # will print something like "option -a not recognized"
-        print("See help: main.py -h")
-        exit(2)
-    for o, a in opts:
-        if o in ("-h"):
-            usage()
-            exit()
-        elif o in ("-a"):
-            args["modnet"] = True
-        elif o in ("-s"):
-            args["source"] = a
-        elif o in ("-t"):
-            args["target"] = a
-        elif o in ("-m"):
-            args["mask"] = a        
-        else:
-            assert False, "unhandled option"
-    
-    #     
-    if ("source" not in args) or ("target" not in args):
-        usage()
-        exit()
-    
-    #    
-    source = cv2.imread(args["source"])
-    target = cv2.imread(args["target"])
+    source = cv2.imread(args.source)
+    target = cv2.imread(args.target)
     
     if source is None or target is None:
         print('Source or target image not exist.')
@@ -73,20 +37,22 @@ if __name__ == '__main__':
         source = cv2.resize(source, None, fx=f, fy=f)
 
     # draw the mask
-    if "modnet" in args:
+    if args.automatic:
         print('MODNet is generating mask...')
         mask = modnet.inference(source)
-    elif "mask" not in args:
+    elif not args.mask:
         print('Please highlight the object to disapparate.\n')
-        mp = MaskPainter(args["source"])
+        mp = MaskPainter(path.dirname(args.source), source)
         mask = mp.paint_mask() 
+        mask = mask.astype(np.uint8)
     else:
-        mask = cv2.imread(args["mask"])
-        if mask.shape[0] > target.shape[0] or mask.shape[1] > target.shape[1]:
-            fx = target.shape[0] / mask.shape[0]
-            fy = target.shape[1] / mask.shape[1]
-            f = min(fx, fy)
-            mask = cv2.resize(mask, None, fx=f, fy=f)
+        mask = cv2.imread(args.mask)   
+    
+    if mask.shape[0] > target.shape[0] or mask.shape[1] > target.shape[1]:
+        fx = target.shape[0] / mask.shape[0]
+        fy = target.shape[1] / mask.shape[1]
+        f = min(fx, fy)
+        mask = cv2.resize(mask, None, fx=f, fy=f)
     
     # adjust mask position for target image
     print('Please move the object to desired location to apparate.\n')
@@ -101,7 +67,7 @@ if __name__ == '__main__':
 
     poisson_blend_result = poisson_edit(source, target, target_mask, offset)
     
-    cv2.imwrite(path.join(path.dirname(args["source"]), 'target_result.png'), 
+    cv2.imwrite(path.join(path.dirname(args.source), 'target_result.png'), 
                 poisson_blend_result)
     
     print('Done.\n')
