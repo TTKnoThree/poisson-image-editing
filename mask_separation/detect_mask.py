@@ -70,7 +70,7 @@ for white in white_bound:
     trimap[white[2]:white[3],white[0]:white[1],:] = 255
 
 os.makedirs("figs/trimaps", exist_ok=True)
-trimap_path = "figs/trimaps/"+filename.split('_')[0]+'_trimap.jpg'
+trimap_path = "figs/trimaps/"+filename+'_trimap.jpg'
 cv2.imwrite(trimap_path,trimap)
 
 resize = args.resize
@@ -79,8 +79,8 @@ image_path = args.image
 
 os.makedirs("figs/alphas", exist_ok=True)
 os.makedirs("figs/masks", exist_ok=True)
-alpha_path = "figs/alphas/"+filename.split('_')[0]+'_alpha.png'
-output_path = "figs/masks/"+filename.split('_')[0]+'_mask.png'
+alpha_path = "figs/alphas/"+filename+'_alpha.png'
+output_path = "figs/masks/"+filename+'_mask.png'
 
 image = cv2.imread(image_path, cv2.IMREAD_COLOR) / 255.0
 trimap = cv2.imread(trimap_path, cv2.IMREAD_GRAYSCALE) / 255.0
