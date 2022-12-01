@@ -9,7 +9,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i','--image', type=str, default='figs/test/1_source.png', help='input image path')
-parser.add_argument('--resize', type=bool, action='store_true', help='whether resize image for faster generating')
+parser.add_argument('--resize', action='store_true', help='whether resize image for faster generating')
 parser.add_argument('--resize_t', type=float, default=0.4, help='resize scale')
 
 args = parser.parse_args()
@@ -94,7 +94,8 @@ alpha = closed_form_matting_with_trimap(image, trimap)
 foreground, _ = solve_foreground_background(image, alpha)
 # alpha = (alpha>0.3)*alpha
 alpha = (alpha>0.3).astype(np.float32)
-output = np.concatenate((foreground, alpha[:, :, np.newaxis]), axis=2)
+# output = np.concatenate((foreground, alpha[:, :, np.newaxis]), axis=2)
+output = foreground*alpha[:,:,np.newaxis]
 
 if resize:
     alpha = cv2.resize(alpha, None, fx=1/resize_t, fy=1/resize_t)
