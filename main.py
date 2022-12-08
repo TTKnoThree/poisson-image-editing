@@ -14,6 +14,7 @@ parser.add_argument('-a', '--automatic', action='store_true', help='Use MODnet f
 parser.add_argument('-s', '--source', type=str, required=True, help='The path of source image.')
 parser.add_argument('-t', '--target', type=str, required=True, help='The path of target image.')
 parser.add_argument('-m', '--mask', type=str, default=None, help='The path of existed mask image.')
+parser.add_argument('-r', '--resize', type=float, default=1.0, help='resize the target image with this ratio')
 
 args = parser.parse_args()
 
@@ -26,6 +27,8 @@ if __name__ == '__main__':
         exit()
 
     # resize images size
+    if args.resize != 1.0:
+        target = cv2.resize(target, None, fx=args.resize, fy=args.resize)
     if source.shape[0] > target.shape[0] or source.shape[1] > target.shape[1]:
         # fx = source.shape[0] / target.shape[0]
         # fy = source.shape[1] / target.shape[1]
@@ -40,6 +43,8 @@ if __name__ == '__main__':
     if args.automatic:
         print('MODNet is generating mask...')
         mask = modnet.inference(source)
+        cv2.imwrite(path.join(path.dirname(args.source), 'target_matte.png'), 
+            mask)
     elif not args.mask:
         print('Please highlight the object to disapparate.\n')
         mp = MaskPainter(path.dirname(args.source), source)
@@ -69,5 +74,6 @@ if __name__ == '__main__':
     
     cv2.imwrite(path.join(path.dirname(args.source), 'target_result.png'), 
                 poisson_blend_result)
+    
     
     print('Done.\n')

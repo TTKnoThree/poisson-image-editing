@@ -12,10 +12,10 @@
 
 ```
 python main.py -s figs/test/source.png -t figs/test/target.jpg -m figs/test/matte.png
-python main.py -a 1 -s figs/test/1_source.png -t figs/test/target.jpg
+python main.py -a -s figs/test/1_source.png -t figs/test/target.jpg
 
 # 参数解释
-# -a 启用MODNet自动分割，后面的参数随便填
+# -a 启用MODNet自动分割
 # -s 含前景人像的图片路径
 # -t 作为背景的图片路径
 # -m 如果已有matting（黑白底），则输入matte的路径
