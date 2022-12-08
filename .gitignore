@@ -4,6 +4,7 @@
 build/
 dist/
 dist-server/
+figs/
 
 # IDE and system
 .vs/

@@ -29,6 +29,6 @@ python main.py -a 1 -s figs/test/1_source.png -t figs/test/target.jpg
 - mask_separation/detect_mask.py用法：
 
   ```shell
-  python mask_separation\detect_mask.py -i mask_separation\detect_mask.py
-  python mask_separation\detect_mask.py -i mask_separation\detect_mask.py --resize --resize_t 0.4
+  python mask_separation\detect_mask.py -i figs/test/1_source.png
+  python mask_separation\detect_mask.py -i figs/test/1_source.png --resize --resize_t 0.4
   ```
