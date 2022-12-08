@@ -18,10 +18,10 @@ class MaskMover():
         self.original_mask = mask
         self.image_copy = self.image.copy()
 
-        self.original_mask_copy = np.zeros(self.original_mask.shape)
-        self.original_mask_copy[np.where(self.original_mask!=0)] = 255
+        # self.original_mask_copy = np.zeros(self.original_mask.shape)
+        # self.original_mask_copy[np.where(self.original_mask!=0)] = 255
 
-        self.mask = self.original_mask_copy.copy()
+        self.mask = self.original_mask.copy()
 
         self.to_move = False
         self.x0 = 0
@@ -76,7 +76,7 @@ class MaskMover():
  
             if key == ord("r"):
                 self.image = self.image_copy.copy()
-                self.mask = self.original_mask_copy.copy()
+                self.mask = self.original_mask.copy()
      
             elif key == ord("s"):
                 break

@@ -49,6 +49,7 @@ def poisson_edit(source, target, mask, offset):
     M = np.float32([[1,0,offset[0]],[0,1,offset[1]]])
     source = cv2.warpAffine(source,M,(x_range,y_range))
         
+    alpha = mask.copy()/255.0
     mask = mask[y_min:y_max, x_min:x_max]    
     mask[mask != 0] = 1
     #mask = cv2.threshold(mask, 127, 1, cv2.THRESH_BINARY)
@@ -86,8 +87,7 @@ def poisson_edit(source, target, mask, offset):
         
         # inside the mask:
         # \Delta f = div v = \Delta g       
-        alpha = 1
-        mat_b = laplacian.dot(source_flat)*alpha
+        mat_b = laplacian.dot(source_flat)
 
         # outside the mask:
         # f = t
@@ -103,7 +103,7 @@ def poisson_edit(source, target, mask, offset):
         #x = cv2.normalize(x, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
         #print(x.shape)
 
-        target[y_min:y_max, x_min:x_max, channel] = x
+        target[y_min:y_max, x_min:x_max, channel] = x * alpha + target[y_min:y_max, x_min:x_max, channel] * (1-alpha)
 
     return target
 
