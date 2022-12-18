@@ -63,13 +63,18 @@ if __name__ == '__main__':
     # adjust mask position for target image
     print('Please move the object to desired location to apparate.\n')
     mm = MaskMover(pattern, pattern_mask)
-    _, offset_x, offset_y, pattern_mask = mm.move_mask()
+    M, pattern_mask = mm.move_mask()
+    
+    ## modify by cq, perform affine transformation on source before poisson editing
+    pattern = cv2.warpAffine(pattern, M, (source.shape[1], source.shape[0]), flags=cv2.WARP_INVERSE_MAP)
 
     # blend
     print('Blending ...')
     pattern_mask = pattern_mask.astype(np.uint8)
     pattern_mask = cv2.cvtColor(pattern_mask, cv2.COLOR_RGB2GRAY) 
-    offset = offset_x, offset_y
+    
+    ## as affine transformation is already performed on source, the offset should be set to 0 to avoid repeated transformation
+    offset = 0, 0
 
     source = poisson_edit(pattern, source, pattern_mask, offset, reverse=True)
     
@@ -93,7 +98,7 @@ if __name__ == '__main__':
     # adjust mask position for target image
     print('Please move the object to desired location to apparate.\n')
     mm = MaskMover(target, target_mask)
-    M, _, _, target_mask = mm.move_mask()            
+    M, target_mask = mm.move_mask()            
 
     ## modify by cq, perform affine transformation on source before poisson editing
     source = cv2.warpAffine(source, M, (target.shape[1], target.shape[0]))

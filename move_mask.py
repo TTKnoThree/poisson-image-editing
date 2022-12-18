@@ -102,7 +102,7 @@ class MaskMover():
 
         # close all open windows
         cv2.destroyAllWindows()
-        return self.M, self.xi-self.x0, self.yi-self.y0, self.mask
+        return self.M, self.mask
 
 
 if __name__ == '__main__':
