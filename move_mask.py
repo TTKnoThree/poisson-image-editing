@@ -10,16 +10,13 @@ class MaskMover():
         if image.shape[0] != mask.shape[0]:
             block = np.zeros((image.shape[0]-mask.shape[0], mask.shape[1], 3))
             mask = np.concatenate((mask, block), axis=0)
-        elif image.shape[1] != mask.shape[1]:
+        if image.shape[1] != mask.shape[1]:
             block = np.zeros((mask.shape[0], image.shape[1]-mask.shape[1], 3))
             mask = np.concatenate((mask, block), axis=1)
         
         self.image = image
         self.original_mask = mask
         self.image_copy = self.image.copy()
-
-        # self.original_mask_copy = np.zeros(self.original_mask.shape)
-        # self.original_mask_copy[np.where(self.original_mask!=0)] = 255
 
         self.mask = self.original_mask.copy()
 
@@ -65,7 +62,7 @@ class MaskMover():
 
 
     def move_mask(self):
-        cv2.namedWindow(self.window_name)
+        cv2.namedWindow(self.window_name, cv2.WINDOW_KEEPRATIO)
         cv2.setMouseCallback(self.window_name, 
                              self._move_mask_handler)
  

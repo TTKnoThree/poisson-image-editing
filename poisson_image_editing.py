@@ -30,7 +30,7 @@ def laplacian_matrix(n, m):
     return mat_A
 
 
-def poisson_edit(source, target, mask, offset):
+def poisson_edit(source, target, mask, offset, reverse=False):
     """The poisson blending function. 
 
     Refer to: 
@@ -79,24 +79,35 @@ def poisson_edit(source, target, mask, offset):
     mat_A = mat_A.tocsc()
 
     mask_flat = mask.flatten()    
+    
+    # target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)
     for channel in range(source.shape[2]):
         source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
-        target_flat = target[y_min:y_max, x_min:x_max, channel].flatten()        
+        target_flat = target[y_min:y_max, x_min:x_max, channel].flatten()
+        # target_flat = target_gray[y_min:y_max, x_min:x_max].flatten()
 
         #concat = source_flat*mask_flat + target_flat*(1-mask_flat)
         
         # inside the mask:
         # \Delta f = div v = \Delta g       
-        mat_b = laplacian.dot(source_flat)
+        if not reverse:
+            mat_b = laplacian.dot(source_flat)
+        else:
+            mat_a = laplacian.dot(source_flat)
+            mat_b = laplacian.dot(target_flat)
+            # mat_b[mat_a<mat_b] = mat_a[mat_a<mat_b] # 2
+            # for i in range(mat_a.shape[0]): # 3
+            #     if mat_a[i] < mat_b[i]:
+            #         # print(f'mat_a > mat_b: {mat_a[i]} > {mat_b[i]}')
+            #         mat_a[i] = mat_b[i]
+            # mat_b = mat_a # 1
 
         # outside the mask:
         # f = t
         mat_b[mask_flat==0] = target_flat[mask_flat==0]
         
         x = spsolve(mat_A, mat_b)
-        #print(x.shape)
         x = x.reshape((y_range, x_range))
-        #print(x.shape)
         x[x > 255] = 255
         x[x < 0] = 0
         x = x.astype('uint8')

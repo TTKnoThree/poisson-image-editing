@@ -10,15 +10,27 @@
 
 ## How to run
 
+```shell
+python==3.8
+pip install numpy
+pip install scipy
+pip install matplotlib
+pip install torch
+pip install torchvision
+pip install opencv-python
+pip install face_recognition
 ```
-python main.py -s figs/test/source.png -t figs/test/target.jpg -m figs/test/matte.png
-python main.py -a -s figs/test/1_source.png -t figs/test/target.jpg
+
+```shell
+python main.py -s figs/example/source1.jpg -t figs/example/target1.jpg -p figs/example/pattern1.jpg -r 0.5 -a
+python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
 
 # 参数解释
-# -a 启用MODNet自动分割
 # -s 含前景人像的图片路径
 # -t 作为背景的图片路径
-# -m 如果已有matting（黑白底），则输入matte的路径
+# -p 作为口罩图案的图片路径
+# -r 为提高运算速度，图片缩放的倍数
+# -a 启用MODNet自动分割
 ```
 
 ## Mask Separation
@@ -29,6 +41,6 @@ python main.py -a -s figs/test/1_source.png -t figs/test/target.jpg
 - mask_separation/detect_mask.py用法：
 
   ```shell
-  python mask_separation\detect_mask.py -i mask_separation\detect_mask.py
-  python mask_separation\detect_mask.py -i mask_separation\detect_mask.py --resize --resize_t 0.4
+  python mask_separation/detect_mask.py -i mask_separation/detect_mask.py
+  python mask_separation/detect_mask.py -i mask_separation/detect_mask.py --resize --resize_t 0.4
   ```

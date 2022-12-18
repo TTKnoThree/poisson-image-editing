@@ -5,7 +5,7 @@ import scipy
 from scipy.sparse import coo_matrix
 from scipy.sparse import linalg
 from numpy.lib.stride_tricks import as_strided
-from solve_foreground_background import solve_foreground_background
+from mask_separation.solve_foreground_background import solve_foreground_background
 
 
 
@@ -154,25 +154,25 @@ if __name__ == '__main__':
 
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) / 255.0
         if resize:
-            image = cv2.resize(image, None, fx=resize_t, fy=resize_t)
+            image = cv2.resize(image, None, fx=resize_t, fy=resize_t, interpolation=cv2.INTER_AREA)
 
         if s:
             scribbles = cv2.imread(scribble_path, cv2.IMREAD_COLOR) / 255.0
             if resize:
-                scribbles = cv2.resize(scribbles, None, fx=resize_t, fy=resize_t)
+                scribbles = cv2.resize(scribbles, None, fx=resize_t, fy=resize_t, interpolation=cv2.INTER_AREA)
             alpha = closed_form_matting_with_scribbles(image, scribbles)
         else:
             trimap = cv2.imread(trimap_path, cv2.IMREAD_GRAYSCALE) / 255.0
             if resize:
-                trimap = cv2.resize(trimap, None, fx=resize_t, fy=resize_t)
+                trimap = cv2.resize(trimap, None, fx=resize_t, fy=resize_t, interpolation=cv2.INTER_AREA)
             alpha = closed_form_matting_with_trimap(image, trimap)
 
         foreground, _ = solve_foreground_background(image, alpha)
         output = np.concatenate((foreground, alpha[:, :, np.newaxis]), axis=2)
         
         if resize:
-            alpha = cv2.resize(alpha, None, fx=1/resize_t, fy=1/resize_t)
-            output = cv2.resize(output, None, fx=1/resize_t, fy=1/resize_t)
+            alpha = cv2.resize(alpha, None, fx=1/resize_t, fy=1/resize_t, interpolation=cv2.INTER_AREA)
+            output = cv2.resize(output, None, fx=1/resize_t, fy=1/resize_t, interpolation=cv2.INTER_AREA)
 
         cv2.imwrite(alpha_path, alpha * 255.0)
         cv2.imwrite(output_path, output * 255.0)
