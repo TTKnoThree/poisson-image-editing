@@ -113,6 +113,10 @@ if __name__ == '__main__':
     white_bound = []
     dilate_scale = 1.8
 
+    if len(face_locations) == 0:
+        print("No face detected in {}!".format(args.image))
+        exit()
+
     for face in face_locations:
         # print(face) # top, right, bottom, left
         h_mid = round((face[0] + face[2]) / 2)
@@ -148,7 +152,7 @@ if __name__ == '__main__':
         point_dict = points[i]
         gray_left = max(2*point_dict['left_eyebrow'][0] - point_dict['right_eyebrow'][0],0)
         gray_right = min(2*point_dict['right_eyebrow'][0] - point_dict['left_eyebrow'][0],image.shape[1])
-        gray_top = (point_dict['left_eyebrow'][1]+point_dict['right_eyebrow'][1])//2
+        gray_top = (point_dict['left_eye'][1]+point_dict['right_eye'][1])//2
         gray_bottom = rectangle[i][1][1] # bottom of face recognition
         gray_bound.append((int(gray_left), int(gray_right), int(gray_top), int(gray_bottom)))
 
