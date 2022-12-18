@@ -30,6 +30,7 @@ class MaskMover():
         self.yi = 0
         self.is_first = True
         self.resize = 100
+        self.M = np.float32([[1,0,0],[0,1,0]])
         
         self.window_name = "Move the mask. s:save; r:reset; q:quit"
 
@@ -71,8 +72,7 @@ class MaskMover():
         cv2.createTrackbar('mask_size', self.window_name, 100, 100, lambda x: None)
         cv2.setMouseCallback(self.window_name, 
                              self._move_mask_handler)
-        self.resize = cv2.getTrackbarPos('mask_size', self.window_name)
-        self.M = np.float32([[self.resize/100.0,0,0],[0,self.resize/100.0,0]])
+        
         while True:  
             self.resize = cv2.getTrackbarPos('mask_size', self.window_name)
             rate = self.resize/100.0/self.M[0][0]
