@@ -28,7 +28,7 @@ python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
 # 参数解释
 # -s 含前景人像的图片路径
 # -t 作为背景的图片路径
-# -p 作为口罩图案的图片路径
+# -p 作为口罩图案的图片路径，如果不指定，则不改变口罩图案
 # -r 为提高运算速度，图片缩放的倍数
 # -a 启用MODNet自动分割
 ```
@@ -41,6 +41,6 @@ python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
 - mask_separation/detect_mask.py用法：
 
   ```shell
-  python mask_separation/detect_mask.py -i mask_separation/detect_mask.py
-  python mask_separation/detect_mask.py -i mask_separation/detect_mask.py --resize --resize_t 0.4
+  python mask_separation/detect_mask.py -i <path_of_input_image>
+  python mask_separation/detect_mask.py -i <path_of_input_image> --resize --resize_t 0.4
   ```
