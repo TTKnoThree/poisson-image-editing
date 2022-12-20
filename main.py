@@ -4,6 +4,7 @@ import numpy as np
 from paint_mask import MaskPainter
 from move_mask import MaskMover
 from poisson_image_editing import poisson_edit
+from advance_poisson_image_editing import advance_poisson_edit
 from mask_separation.detect_mask import detect_mask
 import MODNet.inference as modnet
 
@@ -14,7 +15,8 @@ parser = argparse.ArgumentParser(description='Add arguments for main.py')
 parser.add_argument('-s', '--source', type=str, required=True, help='The path of source image.')
 parser.add_argument('-t', '--target', type=str, required=True, help='The path of target image.')
 parser.add_argument('-p', '--pattern', type=str, required=True, help='The path of mask pattern.')
-parser.add_argument('-r', '--resize', type=float, default=1.0, help='resize the target image with this ratio')
+parser.add_argument('-r', '--resize', type=float, default=1.0, help='resize the target image with this ratio.')
+parser.add_argument('--gaussian_kernel', type=int, default=None, help='The size of gaussian kernel.')
 parser.add_argument('-a', '--automatic', action='store_true', help='Use MODnet for automatic matting.')
 
 args = parser.parse_args()
@@ -42,11 +44,6 @@ if __name__ == '__main__':
         fy = source.shape[1] / pattern.shape[1]
         f = min(fx, fy)
         pattern = cv2.resize(pattern, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
-    # if pattern.shape[0] < source.shape[0] or pattern.shape[1] < source.shape[1]:
-    #     fx = source.shape[0] / pattern.shape[0]
-    #     fy = source.shape[1] / pattern.shape[1]
-    #     f = max(fx, fy)
-    #     pattern = cv2.resize(pattern, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
 
 
     # 2. pattern -> source
@@ -76,7 +73,7 @@ if __name__ == '__main__':
     ## as affine transformation is already performed on source, the offset should be set to 0 to avoid repeated transformation
     offset = 0, 0
 
-    source = poisson_edit(pattern, source, pattern_mask, offset, reverse=True)
+    source = advance_poisson_edit(pattern, source, pattern_mask, offset)
     
     print(f'2. pattern -> source: {pattern.shape}, {pattern_mask.shape}, {source.shape}')
 
@@ -111,7 +108,7 @@ if __name__ == '__main__':
     ## as affine transformation is already performed on source, the offset should be set to 0 to avoid repeated transformation
     offset = 0, 0
 
-    poisson_blend_result = poisson_edit(source, target, target_mask, offset)
+    poisson_blend_result = poisson_edit(source, target, target_mask, offset, args.gaussian_kernel)
     
     
     print(f'3. source -> target: {source.shape}, {target_mask.shape}, {poisson_blend_result.shape}')

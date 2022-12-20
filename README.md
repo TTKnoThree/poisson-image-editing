@@ -35,8 +35,8 @@ python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
 
 ## Mask Separation
 
-- Requirement: face_alignment
-- PS：在Windows系统上，直接pip install face_alignment可能无法安装成功，可以根据以下链接安装，要求python版本为3.7或3.8
+- Requirement: face-recognition
+- PS：在Windows系统上，直接pip install face-recognition可能无法安装成功，可以根据以下链接安装，要求python版本为3.7或3.8
 - [在Windows上安装face-recognition包的方法](https://www.geeksforgeeks.org/how-to-install-face-recognition-in-python-on-windows/)
 - mask_separation/detect_mask.py用法：
 

@@ -30,7 +30,7 @@ def laplacian_matrix(n, m):
     return mat_A
 
 
-def poisson_edit(source, target, mask, offset, reverse=False):
+def poisson_edit(source, target, mask, offset, kernel_size):
     """The poisson blending function. 
 
     Refer to: 
@@ -48,6 +48,12 @@ def poisson_edit(source, target, mask, offset, reverse=False):
         
     M = np.float32([[1,0,offset[0]],[0,1,offset[1]]])
     source = cv2.warpAffine(source,M,(x_range,y_range))
+    
+    # add guassian filter to mask area
+    if kernel_size:
+        guassian_target = cv2.GaussianBlur(target, (kernel_size, kernel_size), 0)
+    else:
+        guassian_target = target.copy()
         
     alpha = mask.copy()/255.0
     mask = mask[y_min:y_max, x_min:x_max]    
@@ -81,26 +87,17 @@ def poisson_edit(source, target, mask, offset, reverse=False):
     mask_flat = mask.flatten()    
     
     # target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)
+    result = target.copy()
     for channel in range(source.shape[2]):
         source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
-        target_flat = target[y_min:y_max, x_min:x_max, channel].flatten()
+        target_flat = guassian_target[y_min:y_max, x_min:x_max, channel].flatten()
         # target_flat = target_gray[y_min:y_max, x_min:x_max].flatten()
 
         #concat = source_flat*mask_flat + target_flat*(1-mask_flat)
         
         # inside the mask:
         # \Delta f = div v = \Delta g       
-        if not reverse:
-            mat_b = laplacian.dot(source_flat)
-        else:
-            mat_a = laplacian.dot(source_flat)
-            mat_b = laplacian.dot(target_flat)
-            # mat_b[mat_a<mat_b] = mat_a[mat_a<mat_b] # 2
-            # for i in range(mat_a.shape[0]): # 3
-            #     if mat_a[i] < mat_b[i]:
-            #         # print(f'mat_a > mat_b: {mat_a[i]} > {mat_b[i]}')
-            #         mat_a[i] = mat_b[i]
-            # mat_b = mat_a # 1
+        mat_b = laplacian.dot(source_flat)
 
         # outside the mask:
         # f = t
@@ -114,21 +111,27 @@ def poisson_edit(source, target, mask, offset, reverse=False):
         #x = cv2.normalize(x, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
         #print(x.shape)
 
-        target[y_min:y_max, x_min:x_max, channel] = x * alpha + target[y_min:y_max, x_min:x_max, channel] * (1-alpha)
+        result[y_min:y_max, x_min:x_max, channel] = x * alpha + target[y_min:y_max, x_min:x_max, channel] * (1-alpha)
 
-    return target
+    return result
 
 def main():    
-    scr_dir = 'figs/example1'
+    scr_dir = 'figs/test'
     out_dir = scr_dir
-    source = cv2.imread(path.join(scr_dir, "source1.jpg")) 
-    target = cv2.imread(path.join(scr_dir, "target1.jpg"))    
-    mask = cv2.imread(path.join(scr_dir, "mask1.png"), 
+    source = cv2.imread(path.join(scr_dir, "source.jpg")) 
+    target = cv2.imread(path.join(scr_dir, "target.jpg"))    
+    mask = cv2.imread(path.join(scr_dir, "target_matte.png"), 
                       cv2.IMREAD_GRAYSCALE) 
-    offset = (0,66)
-    result = poisson_edit(source, target, mask, offset)
-
-    cv2.imwrite(path.join(out_dir, "possion1.png"), result)
+    offset = (0,0)
+    f = 0.5
+    source = cv2.resize(source, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    target = cv2.resize(target, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    mask = cv2.resize(mask, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    kernel_size = 5
+    for i in range(5, 10):
+        kernel_size = 5 + i * 50
+        result = poisson_edit(source.copy(), target.copy(), mask.copy(), offset, kernel_size)
+        cv2.imwrite(path.join(out_dir, f"possion_{kernel_size}.png"), result)
     
 
 if __name__ == '__main__':
