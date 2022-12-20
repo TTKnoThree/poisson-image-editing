@@ -4,6 +4,7 @@ import numpy as np
 from paint_mask import MaskPainter
 from move_mask import MaskMover
 from poisson_image_editing import poisson_edit
+from advance_poisson_image_editing import advance_poisson_edit
 from mask_separation.detect_mask import detect_mask
 import MODNet.inference as modnet
 
@@ -27,27 +28,20 @@ if __name__ == '__main__':
     if source is None or target is None:
         print('Source or target image not exist.')
         exit()
-   
-    # resize target and source
-    if args.resize != 1.0:
-        target = cv2.resize(target, None, fx=args.resize, fy=args.resize, interpolation=cv2.INTER_AREA)
-    if source.shape[0] > target.shape[0] or source.shape[1] > target.shape[1]:
-        fx = target.shape[0] / source.shape[0]
-        fy = target.shape[1] / source.shape[1]
-        f = min(fx, fy)
-        source = cv2.resize(source, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
         
     if args.pattern:
         pattern = cv2.imread(args.pattern)
         if pattern is None:
             print('Pattern image not exist.')
             exit()
-        # resize pattern 
-        if pattern.shape[0] < source.shape[0] or pattern.shape[1] < source.shape[1]:
-            fx = source.shape[0] / pattern.shape[0]
-            fy = source.shape[1] / pattern.shape[1]
-            f = max(fx, fy)
-            pattern = cv2.resize(pattern, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    else:
+        if args.resize != 1.0:
+            target = cv2.resize(target, None, fx=args.resize, fy=args.resize, interpolation=cv2.INTER_AREA)
+        if source.shape[0] > target.shape[0] or source.shape[1] > target.shape[1]:
+            fx = target.shape[0] / source.shape[0]
+            fy = target.shape[1] / source.shape[1]
+            f = min(fx, fy)
+            source = cv2.resize(source, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
 
     # 2. get foreground and target_mask from source
     # draw target mask
@@ -69,6 +63,22 @@ if __name__ == '__main__':
             print('Could not detect face mask automaticly, please highlight the face mask manually.\n')
             mp = MaskPainter(path.dirname(args.source), source)
             pattern_mask = mp.paint_mask() 
+            # resize target and source
+        if args.resize != 1.0:
+            target = cv2.resize(target, None, fx=args.resize, fy=args.resize, interpolation=cv2.INTER_AREA)
+        if source.shape[0] > target.shape[0] or source.shape[1] > target.shape[1]:
+            fx = target.shape[0] / source.shape[0]
+            fy = target.shape[1] / source.shape[1]
+            f = min(fx, fy)
+            source = cv2.resize(source, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+            target_mask = cv2.resize(target_mask, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+            pattern_mask = cv2.resize(pattern_mask, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+        # resize pattern 
+        if pattern.shape[0] < source.shape[0] or pattern.shape[1] < source.shape[1]:
+            fx = source.shape[0] / pattern.shape[0]
+            fy = source.shape[1] / pattern.shape[1]
+            f = max(fx, fy)
+            pattern = cv2.resize(pattern, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
 
         pattern_mask = pattern_mask.astype(np.uint8)
 
@@ -84,7 +94,9 @@ if __name__ == '__main__':
         pattern_mask = cv2.cvtColor(pattern_mask, cv2.COLOR_RGB2GRAY) 
         ## pattern_mask didn't need to be transformed
         offset = 0, 0
-        source = poisson_edit(pattern, source, pattern_mask, offset) 
+        source = advance_poisson_edit(pattern, source, pattern_mask, offset) 
+        cv2.imwrite('tmp.jpg', source)
+        # exit()
         print(f'pattern -> source: pattern.shape={pattern.shape}, pattern_mask.shape={pattern_mask.shape}, source.shape={source.shape}') 
         
     # 6. adjust person position for target image
