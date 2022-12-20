@@ -78,7 +78,27 @@ def advance_poisson_edit(source, target, mask, offset):
     # mat_A = mat_A.tocsc()
     cnt = 0
     mask_flat = mask.flatten()  
-      
+    
+    ##########################################################################
+    # label the extra pixels in channel 0
+    channel = 0
+    label = np.zeros((y_range, x_range))
+    mat_A_tmp = mat_A.copy()
+    source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
+    target_flat = target[y_min:y_max, x_min:x_max, channel].flatten()       
+    
+    # inside the mask:
+    # \Delta f = div v = \Delta g       
+    alpha = 1
+    mat_source = laplacian.dot(source_flat)*alpha
+    mat_target = laplacian.dot(target_flat)*alpha
+    mat_b = mat_source
+    for y in range(1, y_range - 1):
+        for x in range(1, x_range - 1):       
+            if 0.000000001*mat_source[y*x_range+x]<mat_target[y*x_range+x] and mask[y, x] != 0:
+                label[y,x] = 1
+    ############################################################            
+                    
     for channel in range(source.shape[2]):
         mat_A_tmp = mat_A.copy()
         source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
@@ -93,7 +113,7 @@ def advance_poisson_edit(source, target, mask, offset):
         for y in range(1, y_range - 1):
             for x in range(1, x_range - 1):
                 ############################################################
-                if mat_source[y*x_range+x]<mat_target[y*x_range+x] and mask[y, x] != 0:
+                if label[y, x]!=0:
                 # 使用if False替换上面条件,即为改动前的版本
                 # if False:
                     cnt+=1#用于计数多少source被保留
