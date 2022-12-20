@@ -66,7 +66,7 @@ class MaskMover():
 
     def move_mask(self):
         cv2.namedWindow(self.window_name, cv2.WINDOW_KEEPRATIO)
-        cv2.createTrackbar('mask_size', self.window_name, 100, 100, lambda x: None)
+        cv2.createTrackbar('mask_size', self.window_name, 100, 200, lambda x: None)
         cv2.setMouseCallback(self.window_name, 
                              self._move_mask_handler)
         
