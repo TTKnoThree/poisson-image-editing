@@ -48,6 +48,9 @@ def advance_poisson_edit(source, target, mask, offset):
         
     M = np.float32([[1,0,offset[0]],[0,1,offset[1]]])
     source = cv2.warpAffine(source,M,(x_range,y_range))
+    # noise = np.random.randint(0, 10, size=(x_range, y_range, 3))   
+    # source += noise.astype(np.uint8) 
+    # source[source>255] = 255
         
     mask = mask[y_min:y_max, x_min:x_max]    
     mask[mask != 0] = 1
@@ -76,8 +79,31 @@ def advance_poisson_edit(source, target, mask, offset):
     # mask[x_range-1, y_range-1]
 
     # mat_A = mat_A.tocsc()
-
-    mask_flat = mask.flatten()    
+    cnt = 0
+    total = (mask>0).sum()
+    mask_flat = mask.flatten()  
+    
+    ##########################################################################
+    # label the extra pixels in channel 0
+    channel = 0
+    label = np.zeros((y_range, x_range))
+    mat_A_tmp = mat_A.copy()
+    source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
+    target_flat = target[y_min:y_max, x_min:x_max, channel].flatten()       
+    
+    # inside the mask:
+    # \Delta f = div v = \Delta g       
+    alpha = 1
+    mat_source = laplacian.dot(source_flat)*alpha
+    mat_target = laplacian.dot(target_flat)*alpha
+    mat_b = mat_source
+    for y in range(1, y_range - 1):
+        for x in range(1, x_range - 1):       
+            if 10000*np.abs(mat_source[y*x_range+x])<np.abs(mat_target[y*x_range+x]) and mask[y, x] != 0:
+                label[y,x] = 1
+                cnt += 1
+    ############################################################            
+                    
     for channel in range(source.shape[2]):
         mat_A_tmp = mat_A.copy()
         source_flat = source[y_min:y_max, x_min:x_max, channel].flatten()
@@ -91,10 +117,10 @@ def advance_poisson_edit(source, target, mask, offset):
         mat_b = mat_source
         for y in range(1, y_range - 1):
             for x in range(1, x_range - 1):
-                if 0.01*mat_source[y*x_range+x] > mat_target[y*x_range+x] and mask[y, x] != 0:
-                # 使用if False替换上面条件即为改动前
+                ############################################################
+                if label[y, x]!=0:
+                # 使用if False替换上面条件,即为改动前的版本
                 # if False:
-                    # cnt+=1#用于计数多少source被保留
                     # source梯度较小，不改变该点像素值
                     k = x + y * x_range # flatten 之后的 index
                     mat_A_tmp[k, k] = 1
@@ -107,12 +133,12 @@ def advance_poisson_edit(source, target, mask, offset):
                 # if (y*x_range+x)%10000==0:
                 #     print(y*x_range+x)
         mat_A_tmp = mat_A_tmp.tocsc()
-        
+
         # outside the mask:
         # f = t
         mat_b[mask_flat==0] = target_flat[mask_flat==0]
         
-        x = spsolve(mat_A, mat_b)
+        x = spsolve(mat_A_tmp, mat_b)
         #print(x.shape)
         
         x = x.reshape((y_range, x_range))
@@ -125,11 +151,11 @@ def advance_poisson_edit(source, target, mask, offset):
         #print(x.shape)
 
         target[y_min:y_max, x_min:x_max, channel] = x
-
+    print("保留原图像素点比例：", cnt/total)
     return target
 
-def main():
-    scr_dir = 'figs/example1'
+def main():    
+    scr_dir = 'figs/example'
     out_dir = scr_dir
     source = cv2.imread(path.join(scr_dir, "source1.jpg")) 
     target = cv2.imread(path.join(scr_dir, "target1.jpg"))    

@@ -8,8 +8,9 @@ import os
 import numpy as np
 
 
-def detect_mask(source, resize=1.0):
-    image = source
+def detect_mask(source):
+    image = source.copy()
+    image = image[:,:,(2,1,0)] # keep the RGB order consistent with face_recognition
     face_locations = face_recognition.face_locations(image)
     face_landmarks = face_recognition.face_landmarks(image)
     rectangle = []
@@ -17,6 +18,9 @@ def detect_mask(source, resize=1.0):
     gray_bound = []
     white_bound = []
     dilate_scale = 1.8
+
+    if len(face_locations) == 0:
+        return None
 
     for face in face_locations:
         # print(face) # top, right, bottom, left
@@ -53,7 +57,7 @@ def detect_mask(source, resize=1.0):
         point_dict = points[i]
         gray_left = max(2*point_dict['left_eyebrow'][0] - point_dict['right_eyebrow'][0],0)
         gray_right = min(2*point_dict['right_eyebrow'][0] - point_dict['left_eyebrow'][0],image.shape[1])
-        gray_top = (point_dict['left_eyebrow'][1]+point_dict['right_eyebrow'][1])//2
+        gray_top = (point_dict['left_eye'][1]+point_dict['right_eye'][1])//2
         gray_bottom = rectangle[i][1][1] # bottom of face recognition
         gray_bound.append((int(gray_left), int(gray_right), int(gray_top), int(gray_bottom)))
 
@@ -64,11 +68,8 @@ def detect_mask(source, resize=1.0):
         trimap[white[2]:white[3],white[0]:white[1],:] = 255
 
     trimap = cv2.cvtColor(trimap, cv2.COLOR_RGB2GRAY) / 255.0
-
-    if resize != 1.0:
-        image = cv2.resize(image, None, fx=resize, fy=resize, interpolation=cv2.INTER_AREA)
-        trimap = cv2.resize(trimap, None, fx=resize, fy=resize, interpolation=cv2.INTER_AREA)
-    
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) / 255.0
+        
     alpha = closed_form_matting_with_trimap(image, trimap)
 
     foreground, _ = solve_foreground_background(image, alpha)
@@ -76,10 +77,6 @@ def detect_mask(source, resize=1.0):
     alpha = (alpha>0.3).astype(np.float32)
     # output = np.concatenate((foreground, alpha[:, :, np.newaxis]), axis=2)
     output = foreground*alpha[:,:,np.newaxis]
-
-    if resize != 1.0:
-        alpha = cv2.resize(alpha, None, fx=1/resize, fy=1/resize, interpolation=cv2.INTER_AREA)
-        output = cv2.resize(output, None, fx=1/resize, fy=1/resize, interpolation=cv2.INTER_AREA)
     
     alpha = alpha[:, :, np.newaxis]
     alpha = np.concatenate((alpha, alpha, alpha), axis=2)
