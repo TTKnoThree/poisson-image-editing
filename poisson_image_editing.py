@@ -30,7 +30,7 @@ def laplacian_matrix(n, m):
     return mat_A
 
 
-def poisson_edit(source, target, mask, offset, kernel_size):
+def poisson_edit(source, target, mask, offset, kernel_size, spin=False, light=1.0):
     """The poisson blending function. 
 
     Refer to: 
@@ -52,6 +52,12 @@ def poisson_edit(source, target, mask, offset, kernel_size):
     # add guassian filter to mask area
     if kernel_size:
         guassian_target = cv2.GaussianBlur(target, (kernel_size, kernel_size), 0)
+        if spin:
+            tmp1 = cv2.flip(guassian_target, 0)
+            tmp2 = cv2.flip(guassian_target, 1)
+            tmp3 = cv2.flip(guassian_target, -1)
+            guassian_target = 0.25*guassian_target + 0.25*tmp1 + 0.25*tmp2 + 0.25*tmp3
+            guassian_target *= light
     else:
         guassian_target = target.copy()
         
@@ -116,10 +122,10 @@ def poisson_edit(source, target, mask, offset, kernel_size):
     return result
 
 def main():    
-    scr_dir = 'figs/test'
+    scr_dir = 'figs/example'
     out_dir = scr_dir
-    source = cv2.imread(path.join(scr_dir, "source.jpg")) 
-    target = cv2.imread(path.join(scr_dir, "target.jpg"))    
+    source = cv2.imread(path.join(scr_dir, "source3.jpg")) 
+    target = cv2.imread("figs/background/target1.jpg")    
     mask = cv2.imread(path.join(scr_dir, "target_matte.png"), 
                       cv2.IMREAD_GRAYSCALE) 
     offset = (0,0)

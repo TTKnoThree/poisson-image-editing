@@ -16,7 +16,8 @@ parser.add_argument('-s', '--source', type=str, required=True, help='The path of
 parser.add_argument('-t', '--target', type=str, required=True, help='The path of target image.')
 parser.add_argument('-p', '--pattern', type=str, default=None, help='The path of mask pattern, if = None, don\'t change pattern.')
 parser.add_argument('-r', '--resize', type=float, default=1.0, help='resize the target image with this ratio.')
-parser.add_argument('-g', '--gaussian_kernel', type=int, default=None, help='The size of gaussian kernel.')
+parser.add_argument('-g', '--gaussian_kernel', type=int, default=555, help='The size of gaussian kernel.')
+parser.add_argument('-l', '--light_ratio', type=float, default=None, help='The light ratio of poisson process.')
 parser.add_argument('-a', '--automatic', action='store_true', help='Use MODnet for automatic matting.')
 parser.add_argument('-d', '--direct', action='store_true', help='Use direct concat instead of poisson image editing.')
 
@@ -124,16 +125,35 @@ if __name__ == '__main__':
         target_mask = np.concatenate([target_mask, target_mask, target_mask], axis=2)
         poisson_blend_result = np.where(target_mask == 0, target, source)
     else:
-        poisson_blend_result = poisson_edit(source, target, target_mask, offset, args.gaussian_kernel)
-    
-    
+        poisson_blend_result = poisson_edit(source.copy(), target.copy(), target_mask.copy(), offset, args.gaussian_kernel, spin=True, args.light_ratio)
+
+
     print(f'source -> target: source.shape={source.shape}, target_mask.shape={target_mask.shape}, poisson_blend_result.shape={poisson_blend_result.shape}')
     
-    if args.resize != 1.0:
-        target = cv2.resize(target, None, fx=1/args.resize, fy=1/args.resize, interpolation=cv2.INTER_AREA)
+    # if args.resize != 1.0:
+    #     target = cv2.resize(target, None, fx=1/args.resize, fy=1/args.resize, interpolation=cv2.INTER_AREA)
     
-    cv2.imwrite(path.join(path.dirname(args.source), 'target_result.png'), 
+    cv2.imwrite(path.join(path.dirname(args.target), 'result.png'), 
                 poisson_blend_result)
+
+    # for i in [55, 255, 555, 1055]:
+    #     if args.direct:
+    #         target_mask = target_mask[:, :, np.newaxis]
+    #         target_mask = np.concatenate([target_mask, target_mask, target_mask], axis=2)
+    #         poisson_blend_result = np.where(target_mask == 0, target, source)
+    #     else:
+    #         poisson_blend_result, guassian_target = poisson_edit(source.copy(), target.copy(), target_mask.copy(), offset, i, spin=True)
+    
+    
+    #     print(f'source -> target: source.shape={source.shape}, target_mask.shape={target_mask.shape}, poisson_blend_result.shape={poisson_blend_result.shape}')
+        
+    #     # if args.resize != 1.0:
+    #     #     target = cv2.resize(target, None, fx=1/args.resize, fy=1/args.resize, interpolation=cv2.INTER_AREA)
+        
+    #     cv2.imwrite(path.join(path.dirname(args.source), f'result_spin_{i}.png'), 
+    #                 poisson_blend_result)
+    #     cv2.imwrite(path.join(path.dirname(args.source), f'gaussian_result_spin_{i}.png'), 
+    #                 guassian_target)
 
     
     
