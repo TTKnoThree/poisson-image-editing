@@ -31,6 +31,9 @@ python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
 # -p 作为口罩图案的图片路径，如果不指定，则不改变口罩图案
 # -r 为提高运算速度，图片缩放的倍数
 # -a 启用MODNet自动分割
+# -g 指定高斯核的大小，需要是奇数
+# -l 调整图片亮度
+# -d 如果指定，对人物和背景图做直接拼接而非poisson blending
 ```
 
 ## Mask Separation
@@ -44,3 +47,10 @@ python main.py -a -s figs/test/source_1.jpg -t figs/test/target.jpg -r 0.5
   python mask_separation/detect_mask.py -i <path_of_input_image>
   python mask_separation/detect_mask.py -i <path_of_input_image> --resize --resize_t 0.4
   ```
+
+## Acknowledgements
+
+- We complete the project based on the following code repositories:
+  - [MODNet](https://github.com/ZHKKKe/MODNet)
+  - [closed-form-matting](https://github.com/TTKnoThree/closed-form-matting)
+  - [poisson-image-editing](https://github.com/PPPW/poisson-image-editing)
