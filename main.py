@@ -125,7 +125,7 @@ if __name__ == '__main__':
         target_mask = np.concatenate([target_mask, target_mask, target_mask], axis=2)
         poisson_blend_result = np.where(target_mask == 0, target, source)
     else:
-        poisson_blend_result = poisson_edit(source.copy(), target.copy(), target_mask.copy(), offset, args.gaussian_kernel, spin=True, args.light_ratio)
+        poisson_blend_result = poisson_edit(source.copy(), target.copy(), target_mask.copy(), offset, args.gaussian_kernel, spin=True, light=args.light_ratio)
 
 
     print(f'source -> target: source.shape={source.shape}, target_mask.shape={target_mask.shape}, poisson_blend_result.shape={poisson_blend_result.shape}')
