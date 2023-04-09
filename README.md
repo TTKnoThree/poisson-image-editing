@@ -1,4 +1,6 @@
 # Travel around the world photographically
+## Contributors
+Qi Chen, Xinyan Chen, Shuqi Wang
 
 ## Project Introduction
 
